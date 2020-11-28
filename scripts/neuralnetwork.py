@@ -189,12 +189,12 @@ def predict(X, Y, dims, theta):
     return predicted, true_labels
 
 
-def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0, mini_batch=False):
+def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0, mini_batch=False, decay_rate=0.001):
     if mini_batch:
         mini_batches = batches.generate_batches(16, X, Y)
-        costs = mini_batch_model(dims, alpha, mini_batches, num_iterations, theta, adams, lambd)
+        costs = mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, theta, adams, lambd)
     else:
-        costs = batch_model(dims, alpha, X, Y, num_iterations, theta, adams, lambd)
+        costs = batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams, lambd)
 
     plt.plot(np.squeeze(costs))
     plt.ylabel('cost')
@@ -204,11 +204,14 @@ def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0
     return theta
 
 
-def mini_batch_model(dims, alpha, mini_batches, num_iterations, theta, adams=None, lambd=0):
+def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, theta, adams=None, lambd=0):
     costs = []
+
+    base_alpha = alpha
 
     for i in range(num_iterations):
         t = i + 1
+        alpha = learning_rate_decay(decay_rate, t, base_alpha)
         for b in range(len(mini_batches)):
             X, Y = mini_batches[b]
             AL, caches = forward_propagation(dims, X, theta)
@@ -225,10 +228,12 @@ def mini_batch_model(dims, alpha, mini_batches, num_iterations, theta, adams=Non
     return costs
 
 
-def batch_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0):
+def batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams=None, lambd=0):
     costs = []
+    base_alpha = alpha
     for i in range(num_iterations):
         t = i + 1
+        alpha = learning_rate_decay(decay_rate, t, base_alpha)
         AL, caches = forward_propagation(dims, X, theta)
         cost, dAL = softmax_cost(Y, AL, theta, dims, lambd)
         # cost, dAL = compute_cost(Y_batch, AL, theta, dims, lambd)
@@ -241,3 +246,11 @@ def batch_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0):
             costs.append(cost)
 
     return costs
+
+
+def learning_rate_decay(decay_rate, epoch, base_alpha):
+    if decay_rate == 0:
+        return base_alpha
+    alpha = (1 / (1 + decay_rate * epoch)) * base_alpha
+
+    return alpha

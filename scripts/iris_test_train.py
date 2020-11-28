@@ -39,7 +39,7 @@ def train_iris():
     Y_train, label_list = svld.covert_labels_to_int(Y, dims)
     X_train, Y_train = svld.unison_shuffled_copies(X_train.T, Y_train.T)
 
-    theta = nn.training_model(dims, 0.0075, X_train.T, Y_train.T, 10_000, theta, adams, 0, False)
+    theta = nn.training_model(dims, 0.0075, X_train.T, Y_train.T, 2500, theta, adams, lambd=0, mini_batch=False, decay_rate=0)
     svld.check_theta_save(theta, 'thetas/iris_theta.pkl', 'wb')
 
     return theta
