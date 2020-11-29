@@ -39,7 +39,7 @@ def forward_activations(A_prev, W, b, activation):
     return cache, A
 
 
-def forward_propagation(dims, X, theta):
+def forward_propagation(dims, X, theta, classification='multiclass'):
     caches = []
     A_prev = X
 
@@ -48,8 +48,10 @@ def forward_propagation(dims, X, theta):
         A_prev = A
         caches.append(cache)
 
-    cache, AL = forward_activations(A_prev, theta['W' + str(l + 1)], theta['b' + str(l + 1)], 'softmax')
-    # cache, AL = forward_activations(A_prev, theta['W' + str(l + 1)], theta['b' + str(l + 1)], 'sigmoid')
+    if classification == 'binary':
+        cache, AL = forward_activations(A_prev, theta['W' + str(l + 1)], theta['b' + str(l + 1)], 'sigmoid')
+    elif classification == 'multiclass':
+        cache, AL = forward_activations(A_prev, theta['W' + str(l + 1)], theta['b' + str(l + 1)], 'softmax')
     caches.append(cache)
 
     return AL, caches
@@ -111,13 +113,16 @@ def activation_backward(dA, cache, activation, lambd=0, AL=None, Y=None):
     return linear_backward(dZ, linear_cache, lambd)
 
 
-def back_propagation(dAL, caches, lambd=0, AL=None, Y=None):
+def back_propagation(dAL, caches, lambd=0, AL=None, Y=None, classification='multiclass'):
     grads = {}
     layer_count = len(caches)
     current_cache = caches[layer_count - 1]
 
-    dW, db, dA_prev = activation_backward(dAL, current_cache, "softmax", lambd, AL, Y)
-    # dW, db, dA_prev = activation_backward(dAL, current_cache, "sigmoid", lambd, AL, Y)
+    if classification == 'binary':
+        dW, db, dA_prev = activation_backward(dAL, current_cache, "sigmoid", lambd, AL, Y)
+    elif classification == 'multiclass':
+        dW, db, dA_prev = activation_backward(dAL, current_cache, "softmax", lambd, AL, Y)
+
     grads['dW' + str(layer_count)] = dW
     grads['db' + str(layer_count)] = db
 
@@ -152,7 +157,7 @@ def predict_binary(X, Y, dims, theta):
     m = X.shape[1]
     p = np.zeros((1, m))
 
-    AL, caches = forward_propagation(dims, X, theta)
+    AL, caches = forward_propagation(dims, X, theta, classification='binary')
 
     for i in range(0, AL.shape[1]):
         if AL[0, i] > 0.5:
@@ -171,7 +176,7 @@ def predict(X, Y, dims, theta):
     m = X.shape[1]
     p = np.zeros((1, m))
 
-    AL, caches = forward_propagation(dims, X, theta)
+    AL, caches = forward_propagation(dims, X, theta, classification='multiclass')
 
     true_labels = np.argmax(Y, axis=0)
     predicted = np.argmax(AL, axis=0)
@@ -189,12 +194,12 @@ def predict(X, Y, dims, theta):
     return predicted, true_labels
 
 
-def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0, mini_batch=False, decay_rate=0.001):
+def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0, mini_batch=False, batch_count=32, decay_rate=0, classification='multiclass'):
     if mini_batch:
-        mini_batches = batches.generate_batches(16, X, Y)
-        costs = mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, theta, adams, lambd)
+        mini_batches = batches.generate_batches(batch_count, X, Y)
+        costs = mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, theta, adams, lambd, classification)
     else:
-        costs = batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams, lambd)
+        costs = batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams, lambd, classification)
 
     plt.plot(np.squeeze(costs))
     plt.ylabel('cost')
@@ -204,7 +209,7 @@ def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0
     return theta
 
 
-def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, theta, adams=None, lambd=0):
+def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, theta, adams=None, lambd=0, classification='multiclass'):
     costs = []
 
     base_alpha = alpha
@@ -214,10 +219,14 @@ def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, thet
         alpha = learning_rate_decay(decay_rate, t, base_alpha)
         for b in range(len(mini_batches)):
             X, Y = mini_batches[b]
-            AL, caches = forward_propagation(dims, X, theta)
-            cost, dAL = softmax_cost(Y, AL, theta, dims, lambd)
-            # cost, dAL = compute_cost(Y_batch, AL, theta, dims, lambd)
-            grads = back_propagation(dAL, caches, lambd, AL, Y)
+            AL, caches = forward_propagation(dims, X, theta, classification)
+
+            if classification == 'binary':
+                cost, dAL = compute_cost(Y, AL, theta, dims, lambd)
+            elif classification == 'multiclass':
+                cost, dAL = softmax_cost(Y, AL, theta, dims, lambd)
+
+            grads = back_propagation(dAL, caches, lambd, AL, Y, classification)
             adams = update_parameters(dims, grads, adams, theta, alpha, t)
 
             if i % 100 == 0:
@@ -228,15 +237,19 @@ def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, thet
     return costs
 
 
-def batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams=None, lambd=0):
+def batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams=None, lambd=0, classification='multiclass'):
     costs = []
     base_alpha = alpha
     for i in range(num_iterations):
         t = i + 1
         alpha = learning_rate_decay(decay_rate, t, base_alpha)
-        AL, caches = forward_propagation(dims, X, theta)
-        cost, dAL = softmax_cost(Y, AL, theta, dims, lambd)
-        # cost, dAL = compute_cost(Y_batch, AL, theta, dims, lambd)
+        AL, caches = forward_propagation(dims, X, theta, classification)
+
+        if classification == 'binary':
+            cost, dAL = compute_cost(Y, AL, theta, dims, lambd)
+        elif classification == 'multiclass':
+            cost, dAL = softmax_cost(Y, AL, theta, dims, lambd)
+
         grads = back_propagation(dAL, caches, lambd, AL, Y)
         adams = update_parameters(dims, grads, adams, theta, alpha, t)
 
