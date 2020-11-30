@@ -48,7 +48,7 @@ def train_iris():
     X_train = X_train.T
     Y_train = Y_train.T
 
-    theta = nn.training_model(dims, 0.0075, X_train, Y_train, 2500, theta, adams, classification='multiclass')
+    theta = nn.training_model(dims, 0.0075, X_train, Y_train, 2500, theta, adams, classification='multiclass', mini_batch=True, batch_count=16)
     svld.check_theta_save(theta, 'thetas/iris_theta.pkl', 'wb')
 
     return theta
