@@ -1,4 +1,4 @@
-from scripts import neuralnetwork as nn, saveloaddata as svld
+from scripts import neuralnetwork as nn, saveloaddata as svld, preprocessing as pp
 import numpy as np
 
 
@@ -11,7 +11,10 @@ def train_iris_binary():
     Y_train = svld.covert_labels_to_int_binary(Y)
     X_train, Y_train = svld.unison_shuffled_copies(X_train.T, Y_train.T)
 
-    theta = nn.training_model(dims, 0.1, X_train.T, Y_train.T, 10_000, theta, adams, mini_batch=False, classification='binary')
+    X_train = X_train.T
+    Y_train = Y_train.T
+
+    theta = nn.training_model(dims, 0.1, X_train, Y_train, 10_000, theta, adams, mini_batch=False, classification='binary')
 
     svld.check_theta_save(theta, 'thetas/iris_theta_binary.pkl', 'wb')
 
@@ -27,7 +30,10 @@ def test_iris_binary():
     Y_test = svld.covert_labels_to_int_binary(Y)
     X_test, Y_test = svld.unison_shuffled_copies(X_test.T, Y_test.T)
 
-    nn.predict_binary(X_test.T, Y_test.T, dims, theta)
+    X_test = X_test.T
+    Y_test = Y_test.T
+
+    nn.predict_binary(X_test, Y_test, dims, theta)
 
 
 def train_iris():
@@ -60,7 +66,6 @@ def test_iris():
 
     X_test = X_test.T
     Y_test = Y_test.T
-
     predicted, true_labels = nn.predict(X_test, Y_test, dims, theta)
 
     raw_predicted_labels = svld.convert_int_to_labels(predicted, label_list)
