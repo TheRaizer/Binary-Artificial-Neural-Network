@@ -23,7 +23,6 @@ def train_iris_binary():
 
 def test_iris_binary():
     dims = [4, 3, 2, 1]
-
     theta = svld.load_theta('thetas/iris_theta_binary.pkl', 'rb')
     X_test, df = svld.load_csv_sets("iris_data/IrisTestBinary.csv", "rb", (1, 2, 3, 4), ",", 1)
     Y = np.array(df.Species).reshape(1, len(df))

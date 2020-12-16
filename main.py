@@ -3,4 +3,4 @@ import scripts.train_tests.hrt_dis_train_test as heart
 
 if __name__ == '__main__':
     heart.test_heart_binary()
-    # iris.train_iris()
+    # iris.test_iris_binary()

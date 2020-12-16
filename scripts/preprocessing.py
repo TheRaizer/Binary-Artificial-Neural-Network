@@ -8,6 +8,6 @@ def standardize_input_data(X):
 
 
 def normalize_input_data(X):
-    X_normalized = (X - np.mean(X, axis=1, keepdims=True)) / np.var(X, axis=1, keepdims=True)
+    X_normalized = (X - np.min(X, axis=1, keepdims=True)) / (np.max(X, axis=1, keepdims=True) - np.min(X, axis=1, keepdims=True))
 
     return X_normalized
