@@ -1,4 +1,4 @@
-from scripts import neuralnetwork as nn, saveloaddata as svld, preprocessing as pp
+from scripts import neuralnetwork as nn, saveloaddata as svld
 import numpy as np
 
 

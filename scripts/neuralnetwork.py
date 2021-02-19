@@ -5,6 +5,14 @@ import scripts.batches as batches
 
 
 def initialize_parameters(dims):
+    """ Initialize the weight's and bias'
+
+    :param dims: list of integers that each define the number of neurons in their respective layer
+
+    :return: theta: dictionary containing numpy array's with the weights and biases for the network
+    :return: adams: dictionary containing numpy array's with the parameters for adams optimization
+    """
+
     theta = {}
     adams = {}
     for l in range(1, len(dims)):
@@ -20,6 +28,17 @@ def initialize_parameters(dims):
 
 
 def linear_forward(A_prev, W, b):
+    """ Calculates and produces the linear function on the weight's and bias' layer.
+    Produces a linear cache as well.
+
+    :param A_prev: numpy array of the previous layer's activation's, each column is for a different data sample
+    :param W: numpy array containing the weights of the current layer in the network
+    :param b: numpy array containing the biases of the current layer in the network
+
+    :return: Z: numpy array containing the linear calculations at the weight's/bias' layer
+    :return: linear_cache: Tuple containing A_prev, W, and b (used for back prop)
+    """
+
     Z = W @ A_prev + b
     linear_cache = (A_prev, W, b)
 
@@ -27,6 +46,18 @@ def linear_forward(A_prev, W, b):
 
 
 def forward_activations(A_prev, W, b, activation):
+    """ Executes a given activation on the weight's and bias' layer and gives back the activation
+    to be used for the next layer
+
+    :param A_prev: numpy array of the previous layer's activation's, each column is for a different sample
+    :param W: numpy array containing the weights of the current layer in the network
+    :param b: numpy array containing the biases of the current layer in the network
+    :param activation: string representing the type of activation function to use
+
+    :return: cache: tuple of the linear cache as well as the linear computations for a layer
+    :return: A: the activation for a layer
+    """
+
     Z, linear_cache = linear_forward(A_prev, W, b)
 
     if activation == "sigmoid":
@@ -40,6 +71,18 @@ def forward_activations(A_prev, W, b, activation):
 
 
 def forward_propagation(dims, X, theta, classification='multiclass'):
+    """ moves through each layer in the network and calculates the linear function and activations.
+    Stores the linear function and activations in the caches.
+
+    :param dims: list of integers that each define the number of neurons in their respective layer
+    :param X: numpy array of input data. rows = dims[0], columns = the number of data samples
+    :param theta: dictionary of parameters holding the weights and bias'
+    :param classification: string representing the either multiclass or binary classification
+
+    :return: AL: numpy array containing the final activations for each sample (the raw prediction)
+    :return: caches: list of each cache produced from function forward_activations
+    """
+
     caches = []
     A_prev = X
 
@@ -58,6 +101,20 @@ def forward_propagation(dims, X, theta, classification='multiclass'):
 
 
 def compute_cost(Y, AL, theta, dims, lambd=0):
+    """ computes the cross entropy cost and applies regularization
+
+    :param Y: numpy array of true labels for each sample
+    :param AL: numpy array containing the final activations for each data sample (the raw prediction)
+    :param theta: dictionary of parameters holding the weights and bias'
+    :param dims: list of integers that each define the number of neurons in their respective layer
+    :param lambd: float regularization hyper parameter that stops exploding gradients
+
+    :return: total_cost: float total cost of the current iteration
+    :return: dAL: numpy array containing the derivative of the final activation for each data sample '
+    (used to calculate remaining derivatives of the final layer)
+    """
+
+    # This cost function takes the log of the probability that the network is correct in order to get the loss
     m = Y.shape[1]
     cross_entropy_cost = -1 / m * np.sum(Y * np.log(AL) + (1 - Y) * np.log(1 - AL))
     regularized_cost = get_regularized_cost(dims, theta, m, lambd)
@@ -69,17 +126,41 @@ def compute_cost(Y, AL, theta, dims, lambd=0):
 
 
 def softmax_cost(Y, AL, theta, dims, lambd=0):
+    """ Calculates the soft max cost and applies regularization
+
+    :param Y: numpy array of true labels for each sample
+    :param AL: numpy array containing the final activations for each data sample (the raw prediction)
+    :param theta: dictionary of parameters holding the weights and bias'
+    :param dims: list of integers that each define the number of neurons in their respective layer
+    :param lambd: regularization hyper parameter that stops exploding gradients
+
+    :return: total_cost: the total cost of the current iteration
+    :return: dAL: numpy array containing the derivative of the final activation for each data sample '
+    (used to calculate remaining derivatives of the final layer)
+    """
+
+    # Since log loss calculates the log of the probabilities * the actual label summed it makes sense that soft max cost is exactly that.
     m = Y.shape[1]
-    cost = -1 / m * np.sum(Y * np.log(AL))
+    cross_entropy_cost = -1 / m * np.sum(Y * np.log(AL))
     regularized_cost = get_regularized_cost(dims, theta, m, lambd)
 
-    total_cost = cost + regularized_cost
+    total_cost = cross_entropy_cost + regularized_cost
     dAL = np.divide(Y, AL)
 
     return np.squeeze(total_cost), dAL
 
 
 def get_regularized_cost(dims, theta, m, lambd):
+    """ Calculates L2 Regularization cost using hyper parameter lambd
+
+    :param dims: list of integers that each define the number of neurons in their respective layer
+    :param theta: dictionary of parameters holding the weights and bias'
+    :param m: int number of samples to average over
+    :param lambd: float regularization hyper parameter that stops exploding gradients
+
+    :return: regularized_cost: float regularized cost to be added onto the unregularized cost
+    """
+
     regularized_cost = 0
 
     for layer in range(1, len(dims) - 1):
@@ -91,6 +172,19 @@ def get_regularized_cost(dims, theta, m, lambd):
 
 
 def linear_backward(dZ, linear_cache, lambd=0):
+    """ Calculate the derivatives of the cost function with respect to the weights, bias'
+    and the previous layer's activation's
+
+    :param dZ: numpy array containing the derivatives of the cost function with respect to the linear computation Z for
+    each data sample
+    :param linear_cache: Tuple containing A_prev, W, and b
+    :param lambd: float regularization hyper parameter
+
+    :return: dW: numpy array derivatives of the cost function with respect to the weights
+    :return: db: numpy array derivatives of the cost function with respect to the bias'
+    :return: dA_prev: numpy array derivatives of the cost function with respect to the previous layer's activation's
+    """
+
     A_prev, W, b = linear_cache
     m = A_prev.shape[1]
 
@@ -102,6 +196,21 @@ def linear_backward(dZ, linear_cache, lambd=0):
 
 
 def activation_backward(dA, cache, activation, lambd=0, AL=None, Y=None):
+    """ Calculates the derivative of the cost function with respect to Z using the given
+    prime activation function
+
+    :param dA: numpy array derivatives of the cost function with respect to the current layers activation's
+    :param cache: tuple of the linear cache as well as the linear computations for a layer
+    :param activation: string representing the type of activation function to use
+    :param lambd: float regularization hyper parameter
+    :param AL: numpy array containing the final activations for each sample (the raw prediction)
+    :param Y: numpy array of true labels for each sample
+
+    :return: dW: numpy array derivatives of the cost function with respect to the weights
+    :return: db: numpy array derivatives of the cost function with respect to the bias'
+    :return: dA_prev: numpy array derivatives of the cost function with respect to the previous layer's activation's
+    """
+
     Z, linear_cache = cache
     if activation == "sigmoid":
         dZ = atv.sigmoid_backward(dA, Z)
@@ -114,6 +223,20 @@ def activation_backward(dA, cache, activation, lambd=0, AL=None, Y=None):
 
 
 def back_propagation(dAL, caches, lambd=0, AL=None, Y=None, classification='multiclass'):
+    """ Goes through each layer other than the input layer starting from the output layer
+    and calculates each of the derivatives, storing them in the dictionary 'grads'
+
+    :param dAL: numpy array of derivatives of the cost function with respect to the last activation for each
+    data sample
+    :param caches: list of each cache produced from function forward_activations
+    :param lambd: float regularization hyper parameter
+    :param AL: numpy array containing the final activations for each sample (the raw prediction)
+    :param Y: numpy array of true labels for each sample
+    :param classification: string representing the either multiclass or binary classification
+
+    :return: grads: dictionary containing the derivatives of the cost function with respect to the weights and bias'
+    """
+
     grads = {}
     layer_count = len(caches)
     current_cache = caches[layer_count - 1]
@@ -136,6 +259,24 @@ def back_propagation(dAL, caches, lambd=0, AL=None, Y=None, classification='mult
 
 
 def update_parameters(dims, grads, adams, theta, alpha, t, beta_1=0.9, beta_2=0.999, eps=1e-8):
+    """ Use adams optimization to update the weights and biases at each layer. Produces the
+    learned adams parameters which will be used on the next iteration. Adams uses exponentially
+    weighted averages to average out positive and negative gradients, producing a more straightforward direction
+    to the global optimum. It uses previous values of the Adam parameters to adapt and learn new ones.
+
+    :param dims: list of integers that each define the number of neurons in their respective layer
+    :param grads: dictionary containing the derivatives of the cost function with respect to the weights and bias'
+    :param adams: dictionary containing numpy array's with the parameters for adams optimization
+    :param theta: dictionary containing numpy array's with the weights and biases for the network
+    :param alpha: float learning rate that increases or decreases the step length for each iteration of Adams
+    :param t: int the current iteration
+    :param beta_1: float hyper parameter used for the EWA of the gradient descent with momentum part of Adams
+    :param beta_2: float hyper parameter used for the EWA of RMSprop part of Adams
+    :param eps: float value to remove errors when dividing during the RMSprop part of Adams
+
+    :return: adams: dictionary of updated parameters for next iteration of Adams
+    """
+
     for l in range(1, len(dims)):
         adams['vdW' + str(l)] = beta_1 * adams['vdW' + str(l)] + (1 - beta_1) * grads['dW' + str(l)]
         adams['vdb' + str(l)] = beta_1 * adams['vdb' + str(l)] + (1 - beta_1) * grads['db' + str(l)]
@@ -154,6 +295,16 @@ def update_parameters(dims, grads, adams, theta, alpha, t, beta_1=0.9, beta_2=0.
 
 
 def predict_binary(X, Y, dims, theta):
+    """ Predicts on a binary data set
+
+    :param X: numpy array of input data. rows = dims[0], columns = the number of data samples
+    :param Y: numpy array of true labels for each sample
+    :param dims: list of integers that each define the number of neurons in their respective layer
+    :param theta: dictionary containing numpy array's with the weights and biases for the network
+
+    :return: p: numpy array of predictions rounded to 1 or 0
+    """
+
     m = X.shape[1]
     p = np.zeros((1, m))
 
@@ -173,6 +324,17 @@ def predict_binary(X, Y, dims, theta):
 
 
 def predict(X, Y, dims, theta):
+    """ Predicts on a multi-class data set
+
+    :param X: numpy array of input data. rows = dims[0], columns = the number of data samples
+    :param Y: numpy array of true labels for each sample
+    :param dims: list of integers that each define the number of neurons in their respective layer
+    :param theta: dictionary containing numpy array's with the weights and biases for the network
+
+    :return: predicted: numpy array of predictions with each int representing a label
+    :return: true_labels: the true labels that should have been predicted
+    """
+
     m = X.shape[1]
     p = np.zeros((1, m))
 
@@ -195,6 +357,24 @@ def predict(X, Y, dims, theta):
 
 
 def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0, mini_batch=False, batch_count=32, decay_rate=0, classification='multiclass'):
+    """ The base training model that either runs a batch model or mini batch model
+
+    :param dims: list of integers that each define the number of neurons in their respective layer
+    :param alpha: float learning rate that increases or decreases the step length for each iteration of Adams
+    :param X: numpy array of input data. rows = dims[0], columns = the number of data samples
+    :param Y: numpy array of true labels for each sample
+    :param num_iterations: int number of iterations to train on
+    :param theta: dictionary containing numpy array's with the weights and biases for the network
+    :param adams: dictionary containing numpy array's with the parameters for adams optimization
+    :param lambd: float regularization hyper parameter
+    :param mini_batch: boolean whether to use mini batches or not
+    :param batch_count: int the size for each batch
+    :param decay_rate: float the rate to decay the learning rate
+    :param classification: string representing which type of classification to use (binary or multiclass)
+
+    :return: theta: dictionary containing numpy array's with the updated weights and biases for the network
+    """
+
     if mini_batch:
         mini_batches = batches.generate_batches(batch_count, X, Y)
         costs = mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, theta, adams, lambd, classification)
@@ -210,23 +390,49 @@ def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0
 
 
 def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, theta, adams=None, lambd=0, classification='multiclass'):
+    """ The mini batch model will train over mini batches
+
+    :param dims: list of integers that each define the number of neurons in their respective layer
+    :param alpha: float learning rate that increases or decreases the step length for each iteration of Adams
+    :param mini_batches: list of mini batches that were created
+    :param num_iterations: int number of iterations to train on
+    :param decay_rate: float the rate to decay the learning rate
+    :param theta: dictionary containing numpy array's with the weights and biases for the network
+    :param adams: dictionary containing numpy array's with the parameters for adams optimization
+    :param lambd: float regularization hyper parameter
+    :param classification: string representing which type of classification to use (binary or multiclass)
+
+
+    :return: cost: float final cost after training
+    """
+
     costs = []
 
     base_alpha = alpha
 
     for i in range(num_iterations):
+        # increase iteration count
         t = i + 1
+        # decay the learning rate
         alpha = learning_rate_decay(decay_rate, t, base_alpha)
+
+        # loop through mini batches
         for b in range(len(mini_batches)):
+            # extract X and Y from mini batches
             X, Y = mini_batches[b]
+
+            # propagate forward
             AL, caches = forward_propagation(dims, X, theta, classification)
 
+            # classify
             if classification == 'binary':
                 cost, dAL = compute_cost(Y, AL, theta, dims, lambd)
             elif classification == 'multiclass':
                 cost, dAL = softmax_cost(Y, AL, theta, dims, lambd)
-
+            # get derivatives
             grads = back_propagation(dAL, caches, lambd, AL, Y, classification)
+
+            # update parameters using derivatives
             adams = update_parameters(dims, grads, adams, theta, alpha, t)
 
             if i % 100 == 0:
@@ -238,6 +444,22 @@ def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, thet
 
 
 def batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams=None, lambd=0, classification='multiclass'):
+    """Batch model that will train over the entire batch of training data
+
+     :param dims: list of integers that each define the number of neurons in their respective layer
+    :param alpha: float learning rate that increases or decreases the step length for each iteration of Adams
+    :param X: numpy array of input data. rows = dims[0], columns = the number of data samples
+    :param Y: numpy array of true labels for each sample
+    :param num_iterations: int number of iterations to train on
+    :param decay_rate: float the rate to decay the learning rate
+    :param theta: dictionary containing numpy array's with the weights and biases for the network
+    :param adams: dictionary containing numpy array's with the parameters for adams optimization
+    :param lambd: float regularization hyper parameter
+    :param classification: string representing which type of classification to use (binary or multiclass)
+
+    :return: cost: float final cost after training
+    """
+
     costs = []
     base_alpha = alpha
     for i in range(num_iterations):
@@ -262,6 +484,15 @@ def batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams=None
 
 
 def learning_rate_decay(decay_rate, epoch, base_alpha):
+    """ decays a given learning rate
+
+    :param decay_rate: float rate at which to decay
+    :param epoch: int epoch number
+    :param base_alpha: float starting learning rate value
+
+    :return: alpha: float the decayed alpha
+    """
+
     if decay_rate == 0:
         return base_alpha
     alpha = (1 / (1 + decay_rate * epoch)) * base_alpha
