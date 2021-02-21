@@ -9,8 +9,9 @@ def initialize_parameters(dims):
 
     :param dims: list of integers that each define the number of neurons in their respective layer
 
-    :return: theta: dictionary containing numpy array's with the weights and biases for the network
-    :return: adams: dictionary containing numpy array's with the parameters for adams optimization
+    :return:
+    theta: dictionary containing numpy array's with the weights and biases for the network
+    adams: dictionary containing numpy array's with the parameters for adams optimization
     """
 
     theta = {}
@@ -35,8 +36,9 @@ def linear_forward(A_prev, W, b):
     :param W: numpy array containing the weights of the current layer in the network
     :param b: numpy array containing the biases of the current layer in the network
 
-    :return: Z: numpy array containing the linear calculations at the weight's/bias' layer
-    :return: linear_cache: Tuple containing A_prev, W, and b (used for back prop)
+    :return:
+    Z: numpy array containing the linear calculations at the weight's/bias' layer
+    linear_cache: Tuple containing A_prev, W, and b (used for back prop)
     """
 
     Z = W @ A_prev + b
@@ -54,8 +56,9 @@ def forward_activations(A_prev, W, b, activation):
     :param b: numpy array containing the biases of the current layer in the network
     :param activation: string representing the type of activation function to use
 
-    :return: cache: tuple of the linear cache as well as the linear computations for a layer
-    :return: A: the activation for a layer
+    :return:
+    cache: tuple of the linear cache as well as the linear computations for a layer
+    A: the activation for a layer
     """
 
     Z, linear_cache = linear_forward(A_prev, W, b)
@@ -79,8 +82,9 @@ def forward_propagation(dims, X, theta, classification='multiclass'):
     :param theta: dictionary of parameters holding the weights and bias'
     :param classification: string representing the either multiclass or binary classification
 
-    :return: AL: numpy array containing the final activations for each sample (the raw prediction)
-    :return: caches: list of each cache produced from function forward_activations
+    :return:
+    AL: numpy array containing the final activations for each sample (the raw prediction)
+    caches: list of each cache produced from function forward_activations
     """
 
     caches = []
@@ -109,8 +113,9 @@ def compute_cost(Y, AL, theta, dims, lambd=0):
     :param dims: list of integers that each define the number of neurons in their respective layer
     :param lambd: float regularization hyper parameter that stops exploding gradients
 
-    :return: total_cost: float total cost of the current iteration
-    :return: dAL: numpy array containing the derivative of the final activation for each data sample '
+    :return:
+    total_cost: float total cost of the current iteration
+    dAL: numpy array containing the derivative of the final activation for each data sample '
     (used to calculate remaining derivatives of the final layer)
     """
 
@@ -134,8 +139,9 @@ def softmax_cost(Y, AL, theta, dims, lambd=0):
     :param dims: list of integers that each define the number of neurons in their respective layer
     :param lambd: regularization hyper parameter that stops exploding gradients
 
-    :return: total_cost: the total cost of the current iteration
-    :return: dAL: numpy array containing the derivative of the final activation for each data sample '
+    :return:
+    total_cost: the total cost of the current iteration
+    dAL: numpy array containing the derivative of the final activation for each data sample '
     (used to calculate remaining derivatives of the final layer)
     """
 
@@ -180,9 +186,10 @@ def linear_backward(dZ, linear_cache, lambd=0):
     :param linear_cache: Tuple containing A_prev, W, and b
     :param lambd: float regularization hyper parameter
 
-    :return: dW: numpy array derivatives of the cost function with respect to the weights
-    :return: db: numpy array derivatives of the cost function with respect to the bias'
-    :return: dA_prev: numpy array derivatives of the cost function with respect to the previous layer's activation's
+    :return:
+    dW: numpy array derivatives of the cost function with respect to the weights
+    db: numpy array derivatives of the cost function with respect to the bias'
+    dA_prev: numpy array derivatives of the cost function with respect to the previous layer's activation's
     """
 
     A_prev, W, b = linear_cache
@@ -206,9 +213,10 @@ def activation_backward(dA, cache, activation, lambd=0, AL=None, Y=None):
     :param AL: numpy array containing the final activations for each sample (the raw prediction)
     :param Y: numpy array of true labels for each sample
 
-    :return: dW: numpy array derivatives of the cost function with respect to the weights
-    :return: db: numpy array derivatives of the cost function with respect to the bias'
-    :return: dA_prev: numpy array derivatives of the cost function with respect to the previous layer's activation's
+    :return:
+    dW: numpy array derivatives of the cost function with respect to the weights
+    db: numpy array derivatives of the cost function with respect to the bias'
+    dA_prev: numpy array derivatives of the cost function with respect to the previous layer's activation's
     """
 
     Z, linear_cache = cache
@@ -331,8 +339,9 @@ def predict(X, Y, dims, theta):
     :param dims: list of integers that each define the number of neurons in their respective layer
     :param theta: dictionary containing numpy array's with the weights and biases for the network
 
-    :return: predicted: numpy array of predictions with each int representing a label
-    :return: true_labels: the true labels that should have been predicted
+    :return:
+    predicted: numpy array of predictions with each int representing a label
+    true_labels: the true labels that should have been predicted
     """
 
     m = X.shape[1]
