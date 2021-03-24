@@ -34,6 +34,7 @@ def sigmoid_backward(dA, Z):
 
 
 def softmax_backward(AL, Y):
+    # this derivative is wrong
     dZ = AL - Y
 
     return dZ

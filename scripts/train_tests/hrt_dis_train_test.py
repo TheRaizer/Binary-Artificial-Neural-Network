@@ -17,7 +17,7 @@ def train_heart_binary():
     Y_train = Y_train.T
     X_train = pp.standardize_input_data(X_train)
 
-    theta = nn.training_model(dims, 0.00045, X_train, Y_train, 2500, theta, adams, classification='binary')
+    theta = nn.training_model(dims, 0.00045, X_train, Y_train, 2500, theta, adams)
 
     svld.check_theta_save(theta, 'thetas/hrt_theta_binary.pkl', 'wb')
 

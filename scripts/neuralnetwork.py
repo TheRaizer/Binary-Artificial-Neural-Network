@@ -73,14 +73,13 @@ def forward_activations(A_prev, W, b, activation):
     return cache, A
 
 
-def forward_propagation(dims, X, theta, classification='multiclass'):
+def forward_propagation(dims, X, theta):
     """ moves through each layer in the network and calculates the linear function and activations.
     Stores the linear function and activations in the caches.
 
     :param dims: list of integers that each define the number of neurons in their respective layer
     :param X: numpy array of input data. rows = dims[0], columns = the number of data samples
     :param theta: dictionary of parameters holding the weights and bias'
-    :param classification: string representing the either multiclass or binary classification
 
     :return:
     AL: numpy array containing the final activations for each sample (the raw prediction)
@@ -95,16 +94,13 @@ def forward_propagation(dims, X, theta, classification='multiclass'):
         A_prev = A
         caches.append(cache)
 
-    if classification == 'binary':
-        cache, AL = forward_activations(A_prev, theta['W' + str(l + 1)], theta['b' + str(l + 1)], 'sigmoid')
-    elif classification == 'multiclass':
-        cache, AL = forward_activations(A_prev, theta['W' + str(l + 1)], theta['b' + str(l + 1)], 'softmax')
+    cache, AL = forward_activations(A_prev, theta['W' + str(l + 1)], theta['b' + str(l + 1)], 'sigmoid')
     caches.append(cache)
 
     return AL, caches
 
 
-def compute_cost(Y, AL, theta, dims, lambd=0):
+def cross_entropy_binary(Y, AL, theta, dims, lambd=0):
     """ computes the cross entropy cost and applies regularization
 
     :param Y: numpy array of true labels for each sample
@@ -130,8 +126,8 @@ def compute_cost(Y, AL, theta, dims, lambd=0):
     return np.squeeze(total_cost), dAL
 
 
-def softmax_cost(Y, AL, theta, dims, lambd=0):
-    """ Calculates the soft max cost and applies regularization
+def cross_entropy(Y, AL, theta, dims, lambd=0):
+    """ Calculates the multiclass cross entropy cost and applies regularization
 
     :param Y: numpy array of true labels for each sample
     :param AL: numpy array containing the final activations for each data sample (the raw prediction)
@@ -145,13 +141,14 @@ def softmax_cost(Y, AL, theta, dims, lambd=0):
     (used to calculate remaining derivatives of the final layer)
     """
 
-    # Since log loss calculates the log of the probabilities * the actual label summed it makes sense that soft max cost is exactly that.
+    # this cost function is not for multi class cross entropy therefore is also wrong
     m = Y.shape[1]
+
     cross_entropy_cost = -1 / m * np.sum(Y * np.log(AL))
     regularized_cost = get_regularized_cost(dims, theta, m, lambd)
 
     total_cost = cross_entropy_cost + regularized_cost
-    dAL = np.divide(Y, AL)
+    dAL = Y - AL
 
     return np.squeeze(total_cost), dAL
 
@@ -230,7 +227,7 @@ def activation_backward(dA, cache, activation, lambd=0, AL=None, Y=None):
     return linear_backward(dZ, linear_cache, lambd)
 
 
-def back_propagation(dAL, caches, lambd=0, AL=None, Y=None, classification='multiclass'):
+def back_propagation(dAL, caches, lambd=0, AL=None, Y=None):
     """ Goes through each layer other than the input layer starting from the output layer
     and calculates each of the derivatives, storing them in the dictionary 'grads'
 
@@ -240,7 +237,6 @@ def back_propagation(dAL, caches, lambd=0, AL=None, Y=None, classification='mult
     :param lambd: float regularization hyper parameter
     :param AL: numpy array containing the final activations for each sample (the raw prediction)
     :param Y: numpy array of true labels for each sample
-    :param classification: string representing the either multiclass or binary classification
 
     :return: grads: dictionary containing the derivatives of the cost function with respect to the weights and bias'
     """
@@ -249,10 +245,7 @@ def back_propagation(dAL, caches, lambd=0, AL=None, Y=None, classification='mult
     layer_count = len(caches)
     current_cache = caches[layer_count - 1]
 
-    if classification == 'binary':
-        dW, db, dA_prev = activation_backward(dAL, current_cache, "sigmoid", lambd, AL, Y)
-    elif classification == 'multiclass':
-        dW, db, dA_prev = activation_backward(dAL, current_cache, "softmax", lambd, AL, Y)
+    dW, db, dA_prev = activation_backward(dAL, current_cache, "sigmoid", lambd, AL, Y)
 
     grads['dW' + str(layer_count)] = dW
     grads['db' + str(layer_count)] = db
@@ -316,7 +309,7 @@ def predict_binary(X, Y, dims, theta):
     m = X.shape[1]
     p = np.zeros((1, m))
 
-    AL, caches = forward_propagation(dims, X, theta, classification='binary')
+    AL, caches = forward_propagation(dims, X, theta)
 
     for i in range(0, AL.shape[1]):
         if AL[0, i] > 0.5:
@@ -331,41 +324,7 @@ def predict_binary(X, Y, dims, theta):
     return p
 
 
-def predict(X, Y, dims, theta):
-    """ Predicts on a multi-class data set
-
-    :param X: numpy array of input data. rows = dims[0], columns = the number of data samples
-    :param Y: numpy array of true labels for each sample
-    :param dims: list of integers that each define the number of neurons in their respective layer
-    :param theta: dictionary containing numpy array's with the weights and biases for the network
-
-    :return:
-    predicted: numpy array of predictions with each int representing a label
-    true_labels: the true labels that should have been predicted
-    """
-
-    m = X.shape[1]
-    p = np.zeros((1, m))
-
-    AL, caches = forward_propagation(dims, X, theta, classification='multiclass')
-
-    true_labels = np.argmax(Y, axis=0)
-    predicted = np.argmax(AL, axis=0)
-
-    for i in range(0, AL.shape[1]):
-        if true_labels[i] == predicted[i]:
-            p[0, i] = 1
-        else:
-            p[0, i] = 0
-
-    # print(f"predictions: " + str(p))
-    # print(f"true labels: " + str(Y))
-    print(f"Accuracy: " + str((np.sum((p == Y) / m)) * 100) + '%')
-
-    return predicted, true_labels
-
-
-def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0, mini_batch=False, batch_count=32, decay_rate=0, classification='multiclass'):
+def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0, mini_batch=False, batch_count=32, decay_rate=0):
     """ The base training model that either runs a batch model or mini batch model
 
     :param dims: list of integers that each define the number of neurons in their respective layer
@@ -379,16 +338,15 @@ def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0
     :param mini_batch: boolean whether to use mini batches or not
     :param batch_count: int the size for each batch
     :param decay_rate: float the rate to decay the learning rate
-    :param classification: string representing which type of classification to use (binary or multiclass)
 
     :return: theta: dictionary containing numpy array's with the updated weights and biases for the network
     """
 
     if mini_batch:
         mini_batches = batches.generate_batches(batch_count, X, Y)
-        costs = mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, theta, adams, lambd, classification)
+        costs = mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, theta, adams, lambd)
     else:
-        costs = batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams, lambd, classification)
+        costs = batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams, lambd)
 
     plt.plot(np.squeeze(costs))
     plt.ylabel('cost')
@@ -398,7 +356,7 @@ def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0
     return theta
 
 
-def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, theta, adams=None, lambd=0, classification='multiclass'):
+def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, theta, adams=None, lambd=0):
     """ The mini batch model will train over mini batches
 
     :param dims: list of integers that each define the number of neurons in their respective layer
@@ -409,7 +367,6 @@ def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, thet
     :param theta: dictionary containing numpy array's with the weights and biases for the network
     :param adams: dictionary containing numpy array's with the parameters for adams optimization
     :param lambd: float regularization hyper parameter
-    :param classification: string representing which type of classification to use (binary or multiclass)
 
 
     :return: cost: float final cost after training
@@ -418,7 +375,6 @@ def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, thet
     costs = []
 
     base_alpha = alpha
-
     for i in range(num_iterations):
         # increase iteration count
         t = i + 1
@@ -431,28 +387,25 @@ def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, thet
             X, Y = mini_batches[b]
 
             # propagate forward
-            AL, caches = forward_propagation(dims, X, theta, classification)
+            AL, caches = forward_propagation(dims, X, theta)
 
             # classify
-            if classification == 'binary':
-                cost, dAL = compute_cost(Y, AL, theta, dims, lambd)
-            elif classification == 'multiclass':
-                cost, dAL = softmax_cost(Y, AL, theta, dims, lambd)
+            cost, dAL = cross_entropy_binary(Y, AL, theta, dims, lambd)
             # get derivatives
-            grads = back_propagation(dAL, caches, lambd, AL, Y, classification)
+            grads = back_propagation(dAL, caches, lambd, AL, Y)
 
             # update parameters using derivatives
             adams = update_parameters(dims, grads, adams, theta, alpha, t)
 
-            if i % 100 == 0:
-                print("Cost after iteration %i: %f" % (i, cost))
-            if i % 100 == 0:
-                costs.append(cost)
+        if i % 100 == 0:
+            print("Cost after iteration %i: %f" % (i, cost))
+        if i % 100 == 0:
+            costs.append(cost)
 
     return costs
 
 
-def batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams=None, lambd=0, classification='multiclass'):
+def batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams=None, lambd=0):
     """Batch model that will train over the entire batch of training data
 
      :param dims: list of integers that each define the number of neurons in their respective layer
@@ -464,7 +417,6 @@ def batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams=None
     :param theta: dictionary containing numpy array's with the weights and biases for the network
     :param adams: dictionary containing numpy array's with the parameters for adams optimization
     :param lambd: float regularization hyper parameter
-    :param classification: string representing which type of classification to use (binary or multiclass)
 
     :return: cost: float final cost after training
     """
@@ -474,12 +426,9 @@ def batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams=None
     for i in range(num_iterations):
         t = i + 1
         alpha = learning_rate_decay(decay_rate, t, base_alpha)
-        AL, caches = forward_propagation(dims, X, theta, classification)
+        AL, caches = forward_propagation(dims, X, theta)
 
-        if classification == 'binary':
-            cost, dAL = compute_cost(Y, AL, theta, dims, lambd)
-        elif classification == 'multiclass':
-            cost, dAL = softmax_cost(Y, AL, theta, dims, lambd)
+        cost, dAL = cross_entropy_binary(Y, AL, theta, dims, lambd)
 
         grads = back_propagation(dAL, caches, lambd, AL, Y)
         adams = update_parameters(dims, grads, adams, theta, alpha, t)

@@ -27,28 +27,26 @@ def load_csv_sets(file, mode, usecols, delimiter, skiprows):
 
 
 def covert_labels_to_int_binary(Y):
-    Y_set = np.zeros((Y.shape[0], Y.shape[1]))
+    Y_set = np.zeros((1, Y.shape[1]))
     label_list = []
 
-    for row in range(Y.shape[0]):
-        for column in range(Y.shape[1]):
-            if label_list.count(Y[row, column]) == 0:
-                label_list.append(Y[row, column])
-            Y_set[row, column] = label_list.index(Y[row, column])
+    for column in range(Y.shape[1]):
+        if label_list.count(Y[0, column]) == 0:
+            label_list.append(Y[0, column])
+        Y_set[0, column] = label_list.index(Y[0, column])
 
     return Y_set
 
 
-def covert_labels_to_int(Y, dims):
-    Y_set = np.zeros((len(dims) - 1, Y.shape[1]))
+def covert_labels_to_int(Y):
+    Y_set = np.zeros((1, Y.shape[1]))
     label_list = []
 
-    for row in range(len(dims) - 1):
-        for column in range(Y.shape[1]):
-            label = Y[0, column]
-            if label_list.count(Y[0, column]) == 0:
-                label_list.append(Y[row, column])
-            Y_set[label_list.index(label), column] = 1
+    for column in range(Y.shape[1]):
+        label = Y[0, column]
+        if label_list.count(Y[0, column]) == 0:
+            label_list.append(Y[0, column])
+        Y_set[0, column] = label_list.index(label)
 
     return Y_set, label_list
 
