@@ -2,7 +2,7 @@
 Written in python.
 
 99% accuracy on iris data set.
-99% accuracy on heart disease data set.
+83.3% accuracy on heart disease data set.
 
 Option for binary classification using sigmoid as well as multi-class classification using softmax.
 
