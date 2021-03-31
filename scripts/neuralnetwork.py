@@ -67,8 +67,6 @@ def forward_activations(A_prev, W, b, activation):
         A = atv.sigmoid(Z)
     elif activation == "ReLu":
         A = atv.ReLu(Z)
-    elif activation == "softmax":
-        A = atv.softmax(Z)
     cache = (Z, linear_cache)
     return cache, A
 
@@ -199,7 +197,7 @@ def linear_backward(dZ, linear_cache, lambd=0):
     return dW, db, dA_prev
 
 
-def activation_backward(dA, cache, activation, lambd=0, AL=None, Y=None):
+def activation_backward(dA, cache, activation, lambd=0):
     """ Calculates the derivative of the cost function with respect to Z using the given
     prime activation function
 
@@ -218,11 +216,9 @@ def activation_backward(dA, cache, activation, lambd=0, AL=None, Y=None):
 
     Z, linear_cache = cache
     if activation == "sigmoid":
-        dZ = atv.sigmoid_backward(dA, Z)
+        dZ = atv.sigmoid_derivative(dA, Z)
     elif activation == "ReLu":
-        dZ = atv.ReLu_backward(dA, Z)
-    elif activation == "softmax":
-        dZ = atv.softmax_backward(AL, Y)
+        dZ = atv.ReLu_derivative(dA, Z)
 
     return linear_backward(dZ, linear_cache, lambd)
 
@@ -245,7 +241,7 @@ def back_propagation(dAL, caches, lambd=0, AL=None, Y=None):
     layer_count = len(caches)
     current_cache = caches[layer_count - 1]
 
-    dW, db, dA_prev = activation_backward(dAL, current_cache, "sigmoid", lambd, AL, Y)
+    dW, db, dA_prev = activation_backward(dAL, current_cache, "sigmoid", lambd)
 
     grads['dW' + str(layer_count)] = dW
     grads['db' + str(layer_count)] = db
@@ -324,7 +320,7 @@ def predict_binary(X, Y, dims, theta):
     return p
 
 
-def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0, mini_batch=False, batch_count=32, decay_rate=0):
+def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0, is_mini_batch=False, batch_count=32, decay_rate=0):
     """ The base training model that either runs a batch model or mini batch model
 
     :param dims: list of integers that each define the number of neurons in their respective layer
@@ -335,19 +331,20 @@ def training_model(dims, alpha, X, Y, num_iterations, theta, adams=None, lambd=0
     :param theta: dictionary containing numpy array's with the weights and biases for the network
     :param adams: dictionary containing numpy array's with the parameters for adams optimization
     :param lambd: float regularization hyper parameter
-    :param mini_batch: boolean whether to use mini batches or not
+    :param is_mini_batch: boolean whether to use mini batches or not
     :param batch_count: int the size for each batch
     :param decay_rate: float the rate to decay the learning rate
 
     :return: theta: dictionary containing numpy array's with the updated weights and biases for the network
     """
-
-    if mini_batch:
+    if is_mini_batch:
         mini_batches = batches.generate_batches(batch_count, X, Y)
         costs = mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, theta, adams, lambd)
     else:
         costs = batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams, lambd)
 
+    # bold this sentence
+    print("\033[1m" + "Close the plot to continue." + "\033[0m")
     plt.plot(np.squeeze(costs))
     plt.ylabel('cost')
     plt.xlabel('iteration (per hundreds)')
@@ -434,6 +431,8 @@ def batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams=None
         adams = update_parameters(dims, grads, adams, theta, alpha, t)
 
         if i % 100 == 0:
+            # %i represents an int which will be the first value in the tuple
+            # %f represents a float which will be the second value in the tuple
             print("Cost after iteration %i: %f" % (i, cost))
         if i % 100 == 0:
             costs.append(cost)

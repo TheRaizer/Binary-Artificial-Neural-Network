@@ -1,10 +1,9 @@
-# Artificial Neural Network
-Written in python.
+# Artificial Neural Network (Binary)
 
 99% accuracy on iris data set.
 83.3% accuracy on heart disease data set.
 
-Option for binary classification using sigmoid as well as multi-class classification using softmax.
+Uses ReLu activations for hidden layers and Sigmoid for the final layer.
 
 **Hyper parameters:**
 - alpha (learning rate)

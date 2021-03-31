@@ -4,7 +4,7 @@ import numpy as np
 
 
 def check_theta_save(theta, file, mode):
-    saveDec = input("type 'save' or 'yes' to save: ")
+    saveDec = input("Type 'save' or 'yes' to save the trained parameters: ")
     if saveDec == 'yes' or saveDec == 'save':
         a_file = open(file, mode)
         pickle.dump(theta, a_file)
@@ -25,43 +25,3 @@ def load_csv_sets(file, mode, usecols, delimiter, skiprows):
 
     return X, df
 
-
-def covert_labels_to_int_binary(Y):
-    Y_set = np.zeros((1, Y.shape[1]))
-    label_list = []
-
-    for column in range(Y.shape[1]):
-        if label_list.count(Y[0, column]) == 0:
-            label_list.append(Y[0, column])
-        Y_set[0, column] = label_list.index(Y[0, column])
-
-    return Y_set
-
-
-def covert_labels_to_int(Y):
-    Y_set = np.zeros((1, Y.shape[1]))
-    label_list = []
-
-    for column in range(Y.shape[1]):
-        label = Y[0, column]
-        if label_list.count(Y[0, column]) == 0:
-            label_list.append(Y[0, column])
-        Y_set[0, column] = label_list.index(label)
-
-    return Y_set, label_list
-
-
-def convert_int_to_labels(argmax_int_array, label_list):
-    raw_labels = list()
-
-    for i in range(len(argmax_int_array)):
-        raw_labels.append(label_list[argmax_int_array[i]])
-
-    return raw_labels
-
-
-def unison_shuffled_copies(a, b):
-    assert len(a) == len(b)
-    p = np.random.permutation(len(a))
-
-    return a[p], b[p]
