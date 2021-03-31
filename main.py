@@ -1,3 +1,5 @@
+import pickle
+
 import scripts.train_tests.iris_train_test as iris
 import scripts.train_tests.hrt_dis_train_test as heart
 
@@ -41,7 +43,7 @@ def run_test(data_type):
 
 
 def get_action_choice():
-    print("\nWould you like to test or train?")
+    print("\nTest saved parameters or train new ones?")
     print("- 'test'")
     print("- 'train'")
 
@@ -58,8 +60,8 @@ def get_action_choice():
 
 def get_data_type(action):
     print("\nWhat type of data would you like to", action, "on?")
-    print("- 'iris'")
-    print("- 'heart'")
+    print("(easy) - 'iris'")
+    print("(hard) - 'heart'")
 
     # get input in lowercase as well as remove preceding and trailing spaces
     data_type = input("\nChoice: ").strip().lower()
@@ -88,7 +90,7 @@ def input_loop():
 
         dims = []
         print("")
-        num_of_layers = get_positive_input("How many layers would you like (excluding input and output layers)? ")
+        num_of_layers = get_positive_input("# of layers (excluding input and output layers)? ")
 
         # for every layer get the length
         for i in range(num_of_layers):
@@ -96,9 +98,9 @@ def input_loop():
             dims.append(length)
 
         # get other hyper parameters
-        alpha = get_positive_input("What is the value of the learning rate (recommended < 1)? ", True)
-        iterations = get_positive_input("How many iterations would you like to do? (recommended >= 1000)")
-        lambd = get_positive_input("What is the value of the regularization parameter (recommended < 0.1)? ", True, True)
+        alpha = get_positive_input("Value of learning rate (recommended < 1)? ", True)
+        iterations = get_positive_input("# of iterations (recommended >= 1000)? ")
+        lambd = get_positive_input("Value of regularization parameter (recommended < 0.1)? ", True, True)
 
         print("\nWould you like to use mini batches? ")
         print("- 'yes'")
@@ -121,6 +123,6 @@ def input_loop():
 
 if __name__ == '__main__':
     # "\033[1m" is an ANSI escape sequence used to bold this line
-    print("\033[1m" + "Before saving new parameters try 'test' to check the best parameters I could train for each data type." + "\033[0m")
+    print("\033[1m" + "Before saving new parameters try 'test' to check the best parameters I trained for each data type." + "\033[0m")
     input_loop()
 

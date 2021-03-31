@@ -9,7 +9,13 @@ def generate_batches(batch_length, X, Y):
     batches = []
 
     while batch_num < batches_to_create:
-        batch = (X[:, current_batch:current_batch + batch_length], Y[:, current_batch:current_batch + batch_length])
+        # section off the next X_batch
+        X_batch = X[:, current_batch:current_batch + batch_length]
+        # section off the next Y_batch
+        Y_batch = Y[:, current_batch:current_batch + batch_length]
+
+        # generate the batch
+        batch = (X_batch, Y_batch)
         batches.append(batch)
         current_batch += batch_length
         batch_num += 1
