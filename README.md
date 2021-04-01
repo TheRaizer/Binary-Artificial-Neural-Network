@@ -1,7 +1,7 @@
 # Artificial Neural Network (Binary)
 
-99% accuracy on iris data set.
-83.3% accuracy on heart disease data set.
+99.99999999999997% accuracy on iris data set.
+88.88888888888889%% accuracy on heart disease data set.
 
 Uses ReLu activations for hidden layers and Sigmoid for the final layer.
 

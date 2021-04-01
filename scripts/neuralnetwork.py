@@ -205,8 +205,6 @@ def activation_backward(dA, cache, activation, lambd=0):
     :param cache: tuple of the linear cache as well as the linear computations for a layer
     :param activation: string representing the type of activation function to use
     :param lambd: float regularization hyper parameter
-    :param AL: numpy array containing the final activations for each sample (the raw prediction)
-    :param Y: numpy array of true labels for each sample
 
     :return:
     dW: numpy array derivatives of the cost function with respect to the weights
@@ -223,7 +221,7 @@ def activation_backward(dA, cache, activation, lambd=0):
     return linear_backward(dZ, linear_cache, lambd)
 
 
-def back_propagation(dAL, caches, lambd=0, AL=None, Y=None):
+def back_propagation(dAL, caches, lambd=0):
     """ Goes through each layer other than the input layer starting from the output layer
     and calculates each of the derivatives, storing them in the dictionary 'grads'
 
@@ -231,8 +229,6 @@ def back_propagation(dAL, caches, lambd=0, AL=None, Y=None):
     data sample
     :param caches: list of each cache produced from function forward_activations
     :param lambd: float regularization hyper parameter
-    :param AL: numpy array containing the final activations for each sample (the raw prediction)
-    :param Y: numpy array of true labels for each sample
 
     :return: grads: dictionary containing the derivatives of the cost function with respect to the weights and bias'
     """
@@ -389,7 +385,7 @@ def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, thet
             # classify
             cost, dAL = cross_entropy_binary(Y, AL, theta, dims, lambd)
             # get derivatives
-            grads = back_propagation(dAL, caches, lambd, AL, Y)
+            grads = back_propagation(dAL, caches, lambd)
 
             # update parameters using derivatives
             adams = update_parameters(dims, grads, adams, theta, alpha, t)
@@ -427,7 +423,7 @@ def batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams=None
 
         cost, dAL = cross_entropy_binary(Y, AL, theta, dims, lambd)
 
-        grads = back_propagation(dAL, caches, lambd, AL, Y)
+        grads = back_propagation(dAL, caches, lambd)
         adams = update_parameters(dims, grads, adams, theta, alpha, t)
 
         if i % 100 == 0:
