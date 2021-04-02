@@ -115,38 +115,17 @@ def cross_entropy_binary(Y, AL, theta, dims, lambd=0):
 
     # This cost function takes the log of the probability that the network is correct in order to get the loss
     m = Y.shape[1]
-    cross_entropy_cost = -1 / m * np.sum(Y * np.log(AL) + (1 - Y) * np.log(1 - AL))
+    with np.errstate(divide='ignore', invalid='ignore'):
+        cross_entropy_cost = -1 / m * np.sum(Y * np.log(AL) + (1 - Y) * np.log(1 - AL))
+
+        if not np.isfinite(cross_entropy_cost):
+            print("Cost has become incalculable")
+            return -1, None
+
     regularized_cost = get_regularized_cost(dims, theta, m, lambd)
     total_cost = regularized_cost + cross_entropy_cost
 
     dAL = np.divide(1 - Y, 1 - AL) - np.divide(Y, AL)
-
-    return np.squeeze(total_cost), dAL
-
-
-def cross_entropy(Y, AL, theta, dims, lambd=0):
-    """ Calculates the multiclass cross entropy cost and applies regularization
-
-    :param Y: numpy array of true labels for each sample
-    :param AL: numpy array containing the final activations for each data sample (the raw prediction)
-    :param theta: dictionary of parameters holding the weights and bias'
-    :param dims: list of integers that each define the number of neurons in their respective layer
-    :param lambd: regularization hyper parameter that stops exploding gradients
-
-    :return:
-    total_cost: the total cost of the current iteration
-    dAL: numpy array containing the derivative of the final activation for each data sample '
-    (used to calculate remaining derivatives of the final layer)
-    """
-
-    # this cost function is not for multi class cross entropy therefore is also wrong
-    m = Y.shape[1]
-
-    cross_entropy_cost = -1 / m * np.sum(Y * np.log(AL))
-    regularized_cost = get_regularized_cost(dims, theta, m, lambd)
-
-    total_cost = cross_entropy_cost + regularized_cost
-    dAL = Y - AL
 
     return np.squeeze(total_cost), dAL
 
@@ -384,6 +363,10 @@ def mini_batch_model(dims, alpha, mini_batches, num_iterations, decay_rate, thet
 
             # classify
             cost, dAL = cross_entropy_binary(Y, AL, theta, dims, lambd)
+
+            if cost == -1:
+                return costs
+
             # get derivatives
             grads = back_propagation(dAL, caches, lambd)
 
@@ -422,6 +405,9 @@ def batch_model(dims, alpha, X, Y, num_iterations, decay_rate, theta, adams=None
         AL, caches = forward_propagation(dims, X, theta)
 
         cost, dAL = cross_entropy_binary(Y, AL, theta, dims, lambd)
+
+        if cost == -1:
+            return costs
 
         grads = back_propagation(dAL, caches, lambd)
         adams = update_parameters(dims, grads, adams, theta, alpha, t)
