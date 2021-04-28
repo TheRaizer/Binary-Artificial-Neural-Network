@@ -31,7 +31,7 @@ def ReLu(Z):
     Postconditions:
     A: non-empty numpy ndarray that contains the non-linear transformations of Z
     """
-    # With relu if the value of Z < 0 it is 0 otherwise it is passed through a
+    # With relu if the value of Z < 0 it is 0 otherwise it is passed through a 
     # linear function of slope 1 which is why its derivative is either 0 or 1.
     A = np.maximum(0, Z)
 
@@ -43,7 +43,7 @@ def ReLu_derivative(dA, Z):
 
     Preconditions:
     dA: non-empty numpy narray with the same dimensions as Z
-    Z: non-empty numpy ndarray with the same dimensions as dA
+    Z: non-empty numpy ndarray containing linear transformations of the previous layers activations or input layer.
 
     Parameters:
     dA: Numpy array containing the derivative of the cost function with respect to the activations (dC/dA)
