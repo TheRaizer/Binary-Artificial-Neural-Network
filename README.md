@@ -1,13 +1,18 @@
 # Artificial Neural Network (Binary)
 
-99.99999999999997% accuracy on iris data set.
-88.88888888888889%% accuracy on heart disease data set.
+### Summary
+Uses console input to train and test an ANN on an iris and heart disease data set.
 
-Uses ReLu activations for hidden layers and Sigmoid for the final layer.
+### Accuracy
+- 99.99999999999997% accuracy on iris data set.
+- 88.88888888888889%% accuracy on heart disease data set.
 
-**Hyper parameters:**
+### Layers
+- Uses ReLu activations for hidden layers and Sigmoid for the final layer.
+
+### Hyper Parameters
 - alpha (learning rate)
-- num of iterations
+- \# of iterations
 - lambd (controlling L2 regularization)
 - batch_count (the size of a mini batch)
 - decay_rate (alpha decay rate)
